@@ -1,0 +1,110 @@
+-------------------------------------------------------------------------
+CS 249A - Lab 2
+Caesar De La Paz III
+Tirthankar Chatterjee
+--------------------------------------------------------------------------
+user: tirth
+user: cdelapaz
+
+Description:
+    This assigment implements a simulation for a shipping business using
+    techinques such as Attribute-only interfaces and Notifications. Below
+    is an outline of each of the sections that make up the infrastructure
+    of the program. 
+
+Test:
+    - Our sample test is implemented in the file "usaTest.cpp"
+    - This is a test file that we made that includes a number of major 
+      cities in the United states and various interconnections. 
+      We then query for different attributes like system statistics, 
+      and explore and connect connectivity attributes exported by our 
+      design. 
+      Entities:
+	- Locations
+	    - 3 Ports: SEA, SFO, NYC
+	    - 1 Truck Terminal: DAL
+	    - 1 Boat Terminal: HNL
+	    - 1 Plane Terminal: MIA
+	    - 1 Customer: STAN
+	- Segments
+	    - 10 Truck segments
+	    - 6 Boat segments
+	    - 6 Plane segments
+	    - Expedited out of the above: 6 segments
+
+Design Hierarchy:
+    Top Layer : Client 
+        - The client instantiates the following:
+            - Manager - This is responsible for creating and destroying instances.
+                - Fleet
+                - Stats
+                - Conn
+                - Truck/Plane/Boat terminals
+                - Customer locations
+                - Ports
+                - Truck/Plane/Boat segments
+        - The client "talks" to these instances using an attribute-only interface
+          based on string queries.
+
+    Middle Layer : Rep 
+        - The Rep layer is responsible for providing a Layer of indirection between
+          the lowest layer (the Engine - which stores the state) and the client. 
+        - This layer translates all the string queries sent by the Client layer and
+          makes the appropriate calls to the Engine layer to change the state of the 
+          system. 
+        - Specific peculiarities of this layer include the aliasing of all newly
+          created Fleet, Stats and Conn entities (which are in the Engine layer) to
+          the default entities that are created at the inception of the entire system, 
+          i.e. when a new Shipping manager is created by the client. 
+
+        - Classes: (Inheritance hierarchy indicated by the indenting)
+            - fwk/PtrInterface
+                -Instance
+                    - ManagerImpl
+                    - LocationRep
+                    - SegmentRep
+                    - StatsRep
+                    - ConnRep
+                    - FleetRep
+
+    Bottom Layer : Engine
+        - This is the layer where all the state of the entire system is stored. The engine
+          layer only interacts with the rep layer and relies on it for translating string
+          queries and modifying its attributes appropriately.
+        - The basic system structure here is:
+            - The Network 
+                - This is the main entity which keeps track of most of the entities in this
+                  layer, namely locations (ports, customers, truck/boat/plane terminals), 
+                  segments(truck, boat and plane segments) and the fleet (which is unique). 
+            - Stats 
+                - This entity is a notifiee of the network, and upon changes in the network
+                  the stats object gets modified by notifications. 
+            - Conn 
+                - This entity contains a pointer to the network and works on a per query basis. 
+                  When the client supplies a query, then this utilizes a Breadth First Search 
+                  approach to evaluate connectivity between different entities. 
+            
+            - Classes: (Inheritance hierarchy indicated by the indenting)
+                - fwk/PtrInterface
+                    - fwk/NamedInterface
+                        - Network
+                        - Location
+                            - Port
+                            - Customer
+                            - TruckTerminal
+                            - BoatTerminal
+                            - PlaneTerminal
+                        - Segment
+                            - TruckSegment
+                            - BoatSegment
+                            - PlaneSegment
+                        - Fleet
+                        - Conn
+                        - fwk/BaseNotifiee
+                            - Network::Notifiee
+                                - Stats
+                    - Path
+                    - PathGraph
+                        - ConnectGraph
+                        - ExploreGraph
+

@@ -1,0 +1,66 @@
+REP_SRC_PATH += ./rep/src/
+REP_HDR_PATH += ./rep/headers/
+ENG_SRC_PATH += ./engine/src/
+ENG_HDR_PATH += ./engine/headers/
+
+CXXFLAGS = -Wall -g
+
+OBJECTS += Instance.o ShippingValueTypes.o Fleet.o Segment.o Location.o Network.o Stats.o Conn.o 
+OBJECTS += ManagerImpl.o LocationRep.o FleetRep.o SegmentRep.o StatsRep.o ConnRep.o
+
+default: run
+
+test1:	test1.o $(OBJECTS)
+	$(CXX) $(CXXFLAGS) -o $@ $^
+
+example:	example.o $(OBJECTS)
+	$(CXX) $(CXXFLAGS) -o $@ $^
+
+mytest: mytest.o $(OBJECTS)
+	$(CXX) $(CXXFLAGS) -o $@ $^
+
+clean:
+	rm -f test1 test1.o $(OBJECTS) *~
+
+cleanall: 
+	    rm -rf test1 test1.o example example.o mytest mytest.o $(OBJECTS) *~
+
+# The main source file names you will need to test.
+TEST = test1.cpp
+LIBS = fwk/BaseCollection.o fwk/BaseNotifiee.o fwk/Exception.o
+ENG_FILES += ManagerImpl ShippingValueTypes Fleet Segment Location Network Stats Conn
+REP_FILES += Instance LocationRep FleetRep SegmentRep StatsRep ConnRep
+
+# The objects corresponding to the tested files.
+REP_OBJ = $(addsuffix .o, $(addprefix $(SRC_PATH), $(REP_FILES)))
+REP_HDR = $(addsuffix .h, $(addprefix $(REP_HDR_PATH), $(REP_FILES)))
+REP_SRC = $(addsuffix .cpp, $(addprefix $(REP_SRC_PATH), $(REP_FILES)))
+ENG_OBJ = $(addsuffix .o, $(addprefix $(SRC_PATH), $(ENG_FILES)))
+ENG_HDR = $(addsuffix .h, $(addprefix $(ENG_HDR_PATH), $(ENG_FILES)))
+ENG_SRC = $(addsuffix .cpp, $(addprefix $(ENG_SRC_PATH), $(ENG_FILES)))
+FWK_SRC = ./fwk/Ptr.h ./fwk/NamedInterface.h ./fwk/PtrInterface.h
+
+# $(REP_SRC) $(REP_HDR) $(ENG_HDR) $(ENG_SRC)
+
+fwk.o: $(FWK_SRC)
+#$(CXX) $(CXXFLAGS) -I./fwk/ -I. -o $@ $^
+
+eng.o: $(ENG_SRC) $(ENG_HDR)
+#eng.o: $(ENG_SRC) $(ENG_HDR)
+	$(CXX) $(CXXFLAGS) -I. -I./fwk/ -I$(ENG_HDR_PATH) -I$(REP_HDR_PATH) $(FWK_SRC) -o $@ $^
+
+rep.o: $(REP_SRC) $(REP_HDR)
+#rep.o: $(REP_SRC) $(REP_HDR)
+	$(CXX) $(CXXFLAGS) -I. -I./fwk/ -I$(ENG_HDR_PATH) -I$(REP_HDR_PATH) $(FWK_SRC) -o $@ $^
+
+#test.o: $(REP_SRC) $(REP_HDR) $(TEST) $(ENG_SRC) $(ENG_HDR)
+#	$(CXX) $(CXXFLAGS) -I. -I$(ENG_HDR_PATH) -I$(REP_HDR_PATH) $(TEST) -o $@ $^
+
+test.o: test1.cpp
+
+#run: $(TEST) $(REP_SRC) $(REP_HDR)  $(ENG_SRC) $(ENG_HDR)
+#$(CXX) $(CXXFLAGS) -I. -I$(ENG_HDR_PATH) -I$(REP_HDR_PATH) -o shippingBusiness $(TEST) $(REP_SRC) $(REP_HDR) $(ENG_SRC) $(ENG_HDR)
+
+run: test.o eng.o fwk.o rep.o
+	$(CXX) $(CXXFLAGS) -I. -I$(ENG_HDR_PATH) -I$(REP_HDR_PATH) -o shippingBusiness test.o eng.o fwk.o rep.o
+
